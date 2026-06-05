@@ -111,8 +111,8 @@ const Dashboard: React.FC = () => {
       }));
   }, [allSales, stats]);
 
-  const groupPhaseMatches = matches.filter((m: any) => m.stage === 'Fase de Grupos').length;
-  const classifiedTeams = teams.filter((t: any) => t.group_name).length;
+  const groupPhaseMatches = matches.filter((m) => m.stage === 'Fase de Grupos').length;
+  const classifiedTeams = teams.filter((t) => t.group_name).length;
 
   return (
     <div className="space-y-6">

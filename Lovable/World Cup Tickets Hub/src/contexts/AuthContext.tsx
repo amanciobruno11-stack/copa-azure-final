@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import api from '@/lib/api';
+import api, { type ApiUser } from '@/lib/api';
 
 export interface User {
   id: string;
@@ -44,7 +44,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const STORAGE_KEY = 'copa2026_user';
 const ORDERS_KEY = 'copa2026_orders';
 
-function mapApiUser(raw: any): User {
+function mapApiUser(raw: ApiUser): User {
   return {
     id: String(raw?.id ?? ''),
     email: String(raw?.email ?? ''),

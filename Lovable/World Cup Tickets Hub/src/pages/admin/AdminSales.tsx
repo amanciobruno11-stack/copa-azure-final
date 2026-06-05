@@ -113,10 +113,10 @@ const AdminSales: React.FC = () => {
         search: debouncedSearch || undefined,
       }),
       // Stats só carrega 1x na sessão (cache do react-query no statsRes evita refetch)
-      stats ? Promise.resolve({ data: { stats } }) : api.getAdminStats(),
+      stats ? Promise.resolve({ data: { stats }, error: undefined }) : api.getAdminStats(),
     ]);
 
-    const errMsg = salesRes.error || (statsRes as any).error;
+    const errMsg = salesRes.error || statsRes.error;
     if (errMsg) {
       setSales([]);
       setError(errMsg);
@@ -133,7 +133,7 @@ const AdminSales: React.FC = () => {
         totalPages: salesRes.data!.pagination!.totalPages,
       }));
     }
-    if ((statsRes as any).data?.stats) setStats((statsRes as any).data.stats);
+    if (statsRes.data?.stats) setStats(statsRes.data.stats);
     setLoading(false);
   };
 
