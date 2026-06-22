@@ -781,12 +781,18 @@ Portal → `vnet-prd-inf-cin-001` → **Subnets** → **+ Subnet**:
 
 > ⏸️ **Não desligue o público da API ainda** — o front só a alcança privado depois do 8.8.
 
-#### 8.8 VNet Integration do Front (e desligar o público da API)
+#### 8.8 VNet Integration do Front → validar → desligar o público da API
 
-1. `app-prd-tk-fend-cin-001` → **Networking → Outbound → VNet integration → Add** → `snet-prd-inf-appf-cin-001` · **Route All** ligado.
-2. Valide ponta a ponta: `Invoke-RestMethod "$APP/api/health"` → OK (front proxiou para a API via IP privado; o `web.config` **não mudou**).
-3. **Agora sim:** `app-prd-tk-bend-cin-001` → **Networking → Inbound → Public network access → Disabled**.
-4. **Confirme o bloqueio:** chamar a URL da API **direto** da internet deve dar **403/timeout**.
+1. **Garanta a VNet Integration do front.** A integração é **por plano**:
+   - **Front no mesmo plano da API** (padrão): ele **já está integrado** (a integração do 8.6 vale para o plano todo) — só confirme em **Networking → VNet integration** + **Route All** ligado.
+   - **Front em outro plano** (se você fez a 8.4 opcional): `app-prd-tk-fend-cin-001` → **Networking → Outbound → VNet integration → Add** → `snet-prd-inf-appf-cin-001` · **Route All** ligado.
+2. **Valide do Kudu do FRONT** (`https://app-prd-tk-fend-cin-001.scm.azurewebsites.net/DebugConsole`), com o **público da API ainda ligado**:
+   - **DNS:** `nameresolver app-prd-tk-bend-cin-001.azurewebsites.net` → deve resolver **IP privado (`10.x`)** (CNAME `...privatelink.azurewebsites.net`).
+   - **Porta:** `tcpping app-prd-tk-bend-cin-001.azurewebsites.net:443` → deve **conectar**.
+   - **Ponta a ponta:** `Invoke-RestMethod "$APP/api/health"` → **ok** (o front proxiou para a API pelo IP privado; o `web.config` **não mudou**).
+3. **Agora sim:** `app-prd-tk-bend-cin-001` → **Networking → Inbound → Public network access → Disabled** → **Save**.
+4. **Confirme o bloqueio:** a URL da API **direto** da internet deve dar **403/timeout**; pelo **front** continua **200**.
+5. 🔁 **Teste de estabilidade — reinicie os DOIS apps.** Portal → **Restart** no `app-prd-tk-fend-cin-001` **e** no `app-prd-tk-bend-cin-001`. Aguarde **~1-2 min** (propagação da rede privada) e **revalide**: `nameresolver` + `tcpping :443` (Kudu do front) → IP privado/conecta; e o smoke do app (`/api/health`, `/api/health/db`, login). _Isso prova que funciona "a frio" — a falha transitória que aparece **durante** a configuração some depois que o restart estabiliza._
 
 #### 8.9 Validação + considerações operacionais
 
